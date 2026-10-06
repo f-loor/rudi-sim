@@ -1,0 +1,59 @@
+name: Release packages
+
+# Builds the Claude, ChatGPT and desktop packages from this commit so reviewers
+# can download exactly what would ship. It never uploads or publishes anywhere.
+on:
+  pull_request:
+    paths:
+      - '.claude-plugin/**'
+      - 'skills/**'
+      - 'integrations/openai/**'
+      - 'integrations/release/**'
+      - 'integrations/desktop/**'
+      - 'integrations/local-bridge/**'
+      - 'app/package.json'
+      - 'README.md'
+      - 'media/rudi-sim-logo.svg'
+      - 'LICENSE'
+      - '.github/workflows/release.yml'
+  push:
+    branches: [main]
+    paths:
+      - '.claude-plugin/**'
+      - 'skills/**'
+      - 'integrations/openai/**'
+      - 'integrations/release/**'
+      - 'integrations/desktop/**'
+      - 'integrations/local-bridge/**'
+      - 'app/package.json'
+      - 'README.md'
+      - 'media/rudi-sim-logo.svg'
+      - 'LICENSE'
+      - '.github/workflows/release.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Every package carries the repository's engine, and nothing untracked
+        run: node --test integrations/release/test.mjs
+      - name: Build packages
+        run: node integrations/release/build.mjs --out dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rudi-sim-packages
+          path: dist/
+          retention-days: 14

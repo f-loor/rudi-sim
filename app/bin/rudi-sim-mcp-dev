@@ -1,0 +1,5 @@
+#!/bin/sh
+# Development version of rudi-sim-mcp: runs the bridge from this checkout.
+here="$(cd "$(dirname "$0")" && pwd)"
+if [ "$(uname)" = Darwin ]; then electron="$here/../node_modules/electron/dist/Electron.app/Contents/MacOS/Electron"; else electron="$here/../node_modules/electron/dist/electron"; fi
+ELECTRON_RUN_AS_NODE=1 exec "$electron" "$here/../../integrations/local-bridge/server.mjs" "$@"

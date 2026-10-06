@@ -1,0 +1,16 @@
+{
+  "name": "Example tour",
+  "url": "https://example.com",
+  "device": "iPhone 16",
+  "slow": 700,
+  "steps": [
+    { "say": "Opening the page" },
+    { "do": "look" },
+    { "do": "scroll", "args": ["down"], "say": "Scrolling down" },
+    { "do": "scroll", "args": ["top"] },
+    { "do": "device", "args": ["iPad mini"], "say": "Same page on an iPad mini" },
+    { "do": "device", "args": ["iPhone SE, iPad mini, MacBook Air 13"], "say": "Three screens side by side" },
+    { "do": "theme", "args": ["dark"], "say": "Dark mode" },
+    { "say": "That's the tour" }
+  ]
+}

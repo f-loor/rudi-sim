@@ -1,0 +1,10 @@
+{
+  "name": "rudi-sim",
+  "version": "1.1.0",
+  "description": "Show a website the way Safari draws it on 39 Apple devices or any custom size, and watch Claude tap through it.",
+  "author": { "name": "rudi-verse" },
+  "homepage": "https://github.com/f-loor/rudi-sim",
+  "repository": "https://github.com/f-loor/rudi-sim",
+  "license": "MIT",
+  "keywords": ["safari", "webkit", "iphone", "ipad", "mac", "responsive", "playwright", "simulator"]
+}

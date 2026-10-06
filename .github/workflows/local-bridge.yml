@@ -1,0 +1,80 @@
+name: Local bridge
+on:
+  pull_request:
+    paths:
+      - 'integrations/local-bridge/**'
+      - 'integrations/desktop/**'
+      - 'skills/rudi-sim/scripts/**'
+      - '.github/workflows/local-bridge.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'integrations/local-bridge/**'
+      - 'integrations/desktop/**'
+      - 'skills/rudi-sim/scripts/**'
+      - '.github/workflows/local-bridge.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  protocol:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test integrations/local-bridge/test.mjs
+  webkit:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    env:
+      RUDI_BRIDGE_HOME: .rudi-bridge-runtime
+      RUDI_SIM_RECORDINGS: .rudi-bridge-recordings
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node integrations/local-bridge/setup.mjs
+      - if: runner.os == 'Linux'
+        run: npx --prefix "$RUDI_BRIDGE_HOME" playwright install-deps webkit
+      - run: node integrations/local-bridge/smoke.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bridge-webkit-${{ runner.os }}
+          path: .rudi-bridge-recordings/
+          if-no-files-found: ignore
+  desktop:
+    # On Windows and macOS this also saves and deletes a throwaway key in the
+    # real Credential Manager / Keychain.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test integrations/desktop/test.mjs
+      - name: Connection states, tunnel clean-up, sharing the simulator
+        run: node --test integrations/desktop/connection.test.mjs

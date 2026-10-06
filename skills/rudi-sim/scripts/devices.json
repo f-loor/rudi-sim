@@ -1,0 +1,442 @@
+{
+ "_note": "CSS sizes in portrait (Macs: default 'looks like' resolution). Edit or add devices here.",
+ "groups": {
+  "default": [
+   "se",
+   "16",
+   "16promax",
+   "ipadmini",
+   "ipad",
+   "macbookair13",
+   "imac"
+  ],
+  "iphones": [
+   "se",
+   "12mini",
+   "13mini",
+   "11",
+   "12",
+   "13",
+   "14",
+   "14plus",
+   "14pro",
+   "14promax",
+   "15",
+   "15plus",
+   "15pro",
+   "15promax",
+   "16e",
+   "16",
+   "16plus",
+   "16pro",
+   "16promax",
+   "17",
+   "air",
+   "17pro",
+   "17promax",
+   "duo",
+   "duoopen"
+  ],
+  "ipads": [
+   "ipadmini",
+   "ipad9",
+   "ipad",
+   "ipadair11",
+   "ipadair13",
+   "ipadpro11",
+   "ipadpro13"
+  ],
+  "macs": [
+   "macbookair13",
+   "macbookair15",
+   "macbookpro14",
+   "macbookpro16",
+   "imac",
+   "imacmore",
+   "studiodisplay"
+  ],
+  "all": [
+   "se",
+   "12mini",
+   "13mini",
+   "11",
+   "12",
+   "13",
+   "14",
+   "14plus",
+   "14pro",
+   "14promax",
+   "15",
+   "15plus",
+   "15pro",
+   "15promax",
+   "16e",
+   "16",
+   "16plus",
+   "16pro",
+   "16promax",
+   "17",
+   "air",
+   "17pro",
+   "17promax",
+   "duo",
+   "duoopen",
+   "ipadmini",
+   "ipad9",
+   "ipad",
+   "ipadair11",
+   "ipadair13",
+   "ipadpro11",
+   "ipadpro13",
+   "macbookair13",
+   "macbookair15",
+   "macbookpro14",
+   "macbookpro16",
+   "imac",
+   "imacmore",
+   "studiodisplay"
+  ]
+ },
+ "devices": [
+  {
+   "key": "se",
+   "name": "iPhone SE (2nd & 3rd gen)",
+   "type": "iphone",
+   "width": 375,
+   "height": 667,
+   "scale": 2
+  },
+  {
+   "key": "12mini",
+   "name": "iPhone 12 mini",
+   "type": "iphone",
+   "width": 360,
+   "height": 780,
+   "scale": 3,
+   "cutout": "notch"
+  },
+  {
+   "key": "13mini",
+   "name": "iPhone 13 mini",
+   "type": "iphone",
+   "width": 360,
+   "height": 780,
+   "scale": 3,
+   "cutout": "notch-small"
+  },
+  {
+   "key": "11",
+   "name": "iPhone 11",
+   "type": "iphone",
+   "width": 414,
+   "height": 896,
+   "scale": 2,
+   "cutout": "notch"
+  },
+  {
+   "key": "12",
+   "name": "iPhone 12",
+   "type": "iphone",
+   "width": 390,
+   "height": 844,
+   "scale": 3,
+   "cutout": "notch"
+  },
+  {
+   "key": "13",
+   "name": "iPhone 13",
+   "type": "iphone",
+   "width": 390,
+   "height": 844,
+   "scale": 3,
+   "cutout": "notch-small"
+  },
+  {
+   "key": "14",
+   "name": "iPhone 14",
+   "type": "iphone",
+   "width": 390,
+   "height": 844,
+   "scale": 3,
+   "cutout": "notch-small"
+  },
+  {
+   "key": "14plus",
+   "name": "iPhone 14 Plus",
+   "type": "iphone",
+   "width": 428,
+   "height": 926,
+   "scale": 3,
+   "cutout": "notch-small"
+  },
+  {
+   "key": "14pro",
+   "name": "iPhone 14 Pro",
+   "type": "iphone",
+   "width": 393,
+   "height": 852,
+   "scale": 3,
+   "cutout": "island"
+  },
+  {
+   "key": "14promax",
+   "name": "iPhone 14 Pro Max",
+   "type": "iphone",
+   "width": 430,
+   "height": 932,
+   "scale": 3,
+   "cutout": "island"
+  },
+  {
+   "key": "15",
+   "name": "iPhone 15",
+   "type": "iphone",
+   "width": 393,
+   "height": 852,
+   "scale": 3,
+   "cutout": "island"
+  },
+  {
+   "key": "15plus",
+   "name": "iPhone 15 Plus",
+   "type": "iphone",
+   "width": 430,
+   "height": 932,
+   "scale": 3,
+   "cutout": "island"
+  },
+  {
+   "key": "15pro",
+   "name": "iPhone 15 Pro",
+   "type": "iphone",
+   "width": 393,
+   "height": 852,
+   "scale": 3,
+   "cutout": "island"
+  },
+  {
+   "key": "15promax",
+   "name": "iPhone 15 Pro Max",
+   "type": "iphone",
+   "width": 430,
+   "height": 932,
+   "scale": 3,
+   "cutout": "island"
+  },
+  {
+   "key": "16e",
+   "name": "iPhone 16e",
+   "type": "iphone",
+   "width": 390,
+   "height": 844,
+   "scale": 3,
+   "cutout": "notch-small"
+  },
+  {
+   "key": "16",
+   "name": "iPhone 16",
+   "type": "iphone",
+   "width": 393,
+   "height": 852,
+   "scale": 3,
+   "cutout": "island"
+  },
+  {
+   "key": "16plus",
+   "name": "iPhone 16 Plus",
+   "type": "iphone",
+   "width": 430,
+   "height": 932,
+   "scale": 3,
+   "cutout": "island"
+  },
+  {
+   "key": "16pro",
+   "name": "iPhone 16 Pro",
+   "type": "iphone",
+   "width": 402,
+   "height": 874,
+   "scale": 3,
+   "cutout": "island"
+  },
+  {
+   "key": "16promax",
+   "name": "iPhone 16 Pro Max",
+   "type": "iphone",
+   "width": 440,
+   "height": 956,
+   "scale": 3,
+   "cutout": "island"
+  },
+  {
+   "key": "17",
+   "name": "iPhone 17",
+   "type": "iphone",
+   "width": 402,
+   "height": 874,
+   "scale": 3,
+   "cutout": "island"
+  },
+  {
+   "key": "air",
+   "name": "iPhone Air",
+   "type": "iphone",
+   "width": 420,
+   "height": 912,
+   "scale": 3,
+   "cutout": "island"
+  },
+  {
+   "key": "17pro",
+   "aliases": [
+    "18pro"
+   ],
+   "name": "iPhone 17 Pro & 18 Pro",
+   "type": "iphone",
+   "width": 402,
+   "height": 874,
+   "scale": 3,
+   "cutout": "island"
+  },
+  {
+   "key": "17promax",
+   "aliases": [
+    "18promax"
+   ],
+   "name": "iPhone 17 Pro Max & 18 Pro Max",
+   "type": "iphone",
+   "width": 440,
+   "height": 956,
+   "scale": 3,
+   "cutout": "island"
+  },
+  {
+   "key": "duo",
+   "name": "iPhone Duo (folded)",
+   "type": "iphone",
+   "width": 466,
+   "height": 678,
+   "scale": 3
+  },
+  {
+   "key": "duoopen",
+   "name": "iPhone Duo (open)",
+   "type": "iphone",
+   "width": 626,
+   "height": 890,
+   "scale": 3
+  },
+  {
+   "key": "ipadmini",
+   "name": "iPad mini (6th gen & A17 Pro)",
+   "type": "ipad",
+   "width": 744,
+   "height": 1133,
+   "scale": 2
+  },
+  {
+   "key": "ipad9",
+   "name": "iPad (9th gen)",
+   "type": "ipad",
+   "width": 810,
+   "height": 1080,
+   "scale": 2
+  },
+  {
+   "key": "ipad",
+   "name": "iPad (10th gen & A16)",
+   "type": "ipad",
+   "width": 820,
+   "height": 1180,
+   "scale": 2
+  },
+  {
+   "key": "ipadair11",
+   "name": "iPad Air 11-inch",
+   "type": "ipad",
+   "width": 820,
+   "height": 1180,
+   "scale": 2
+  },
+  {
+   "key": "ipadair13",
+   "name": "iPad Air 13-inch",
+   "type": "ipad",
+   "width": 1024,
+   "height": 1366,
+   "scale": 2
+  },
+  {
+   "key": "ipadpro11",
+   "name": "iPad Pro 11-inch (M4 & M5)",
+   "type": "ipad",
+   "width": 834,
+   "height": 1210,
+   "scale": 2
+  },
+  {
+   "key": "ipadpro13",
+   "name": "iPad Pro 13-inch (M4 & M5)",
+   "type": "ipad",
+   "width": 1032,
+   "height": 1376,
+   "scale": 2
+  },
+  {
+   "key": "macbookair13",
+   "name": "MacBook Air 13-inch",
+   "type": "mac",
+   "width": 1470,
+   "height": 956,
+   "scale": 2
+  },
+  {
+   "key": "macbookair15",
+   "name": "MacBook Air 15-inch",
+   "type": "mac",
+   "width": 1710,
+   "height": 1112,
+   "scale": 2
+  },
+  {
+   "key": "macbookpro14",
+   "name": "MacBook Pro 14-inch",
+   "type": "mac",
+   "width": 1512,
+   "height": 982,
+   "scale": 2
+  },
+  {
+   "key": "macbookpro16",
+   "name": "MacBook Pro 16-inch",
+   "type": "mac",
+   "width": 1728,
+   "height": 1117,
+   "scale": 2
+  },
+  {
+   "key": "imac",
+   "name": "iMac 24-inch",
+   "type": "mac",
+   "width": 2240,
+   "height": 1260,
+   "scale": 2
+  },
+  {
+   "key": "imacmore",
+   "name": "iMac 24-inch (More Space setting)",
+   "type": "mac",
+   "width": 2560,
+   "height": 1440,
+   "scale": 1.75
+  },
+  {
+   "key": "studiodisplay",
+   "name": "Studio Display 27-inch",
+   "type": "mac",
+   "width": 2560,
+   "height": 1440,
+   "scale": 2
+  }
+ ]
+}

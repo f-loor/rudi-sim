@@ -1,0 +1,20 @@
+name: Add a device
+description: Ask for an Apple device or screen size that isn't built in
+labels: [device request]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Device name
+      placeholder: iPhone 18 Pro
+    validations:
+      required: true
+  - type: input
+    id: spec
+    attributes:
+      label: Link to its screen size
+      description: Apple's tech specs page is best. We add devices from published specs only.
+  - type: textarea
+    id: why
+    attributes:
+      label: Anything else

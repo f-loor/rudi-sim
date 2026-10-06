@@ -1,0 +1,11 @@
+{
+  "name": "rudi-sim",
+  "owner": { "name": "f-loor" },
+  "plugins": [
+    {
+      "name": "rudi-sim",
+      "source": "./",
+      "description": "Show a website the way Safari draws it on 39 Apple devices or any custom size, and watch Claude tap through it."
+    }
+  ]
+}

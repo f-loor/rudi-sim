@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src file:; connect-src 'none'">
+<title>Rudi-Sim</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!-- First-run setup. Shown until setupDone is saved. -->
+<section id="wizard" hidden>
+  <div class="wiz">
+    <header><img src="../assets/icon.png" alt="" class="logo"><h1>Welcome to Rudi-Sim</h1></header>
+    <ol class="steps" id="wizSteps"></ol>
+
+    <div class="page" data-step="use">
+      <h2>Which assistants will use Rudi-Sim?</h2>
+      <p>Rudi-Sim opens your website on Apple screen sizes in Safari's engine (WebKit) and records what happens. An AI assistant drives it; you can watch and click along.</p>
+      <label class="check"><input type="checkbox" id="wUseClaude" checked> <span><b>Claude Code</b><small>Connects directly on this computer. Nothing goes over the internet to reach Rudi-Sim.</small></span></label>
+      <label class="check"><input type="checkbox" id="wUseChatgpt"> <span><b>ChatGPT</b><small>Reaches this computer through OpenAI's secure tunnel. This needs an OpenAI Platform organization with tunnels turned on (developer setup).</small></span></label>
+    </div>
+
+    <div class="page" data-step="folder">
+      <h2>Where should recordings go?</h2>
+      <p>Every session saves a video and screenshots in its own folder. They stay on this computer.</p>
+      <div class="pathrow"><code id="wFolder"></code><button id="wPickFolder">Choose…</button></div>
+    </div>
+
+    <div class="page" data-step="background">
+      <h2>Keep Rudi-Sim ready?</h2>
+      <label class="check"><input type="checkbox" id="wBackground" checked> <span><b>Keep running when I close the window</b><small>Rudi-Sim stays in the <span class="os-tray">system tray</span> so assistants can reach it. Quit from there to stop it completely.</small></span></label>
+      <label class="check" id="wLoginRow"><input type="checkbox" id="wLogin"> <span><b>Start when I sign in to this computer</b><small>It starts quietly in the background.</small></span></label>
+    </div>
+
+    <div class="page" data-step="engine">
+      <h2>Download Safari's engine</h2>
+      <p>Rudi-Sim uses Playwright's build of WebKit, the engine inside Safari. It's a one-time download of about 70–90 MB. It's browser emulation on this computer, not a real iPhone.</p>
+      <div class="progress"><div id="wBar"></div></div>
+      <p id="wEngineMsg" class="muted"></p>
+      <button id="wEngineGo" class="primary">Download</button>
+    </div>
+
+    <div class="page" data-step="chatgpt">
+      <h2>Connect ChatGPT</h2>
+      <div class="note">This is a developer setup. It uses OpenAI's <b>tunnel-client</b> program and a tunnel that belongs to your own OpenAI Platform organization. Rudi-Sim can't create these for you, and there's no "sign in with OpenAI" for it yet.</div>
+      <ol class="howto">
+        <li>Open <a href="#" data-link="https://platform.openai.com/settings/organization/tunnels">Tunnels in OpenAI Platform</a>, create a tunnel and copy its ID (it starts with <code>tunnel_</code>). Your role needs the Tunnels Read and Use permissions.</li>
+        <li>Create a runtime API key for it on the same page or under <a href="#" data-link="https://platform.openai.com/api-keys">API keys</a>.</li>
+        <li>Download tunnel-client from that page and choose it below.</li>
+      </ol>
+      <div class="pathrow"><code id="wTunnelClient">Not chosen</code><button id="wPickTunnel">Choose tunnel-client…</button></div>
+      <label class="field">Tunnel ID <input id="wTunnelId" placeholder="tunnel_…" spellcheck="false" autocomplete="off"></label>
+      <label class="field">Runtime API key <input id="wKey" type="password" placeholder="Saved in your computer's password store" autocomplete="off"></label>
+      <p class="muted small">The key goes straight into <span class="os-store">your computer's password store</span>. Rudi-Sim never writes it to a file or a log.</p>
+      <button id="wSaveTunnel">Save and check</button>
+      <pre id="wTunnelOut" class="out" hidden></pre>
+    </div>
+
+    <div class="page" data-step="test">
+      <h2>Try it</h2>
+      <p>Rudi-Sim will open a small test page in the simulator, take a screenshot and close it again.</p>
+      <button id="wTest" class="primary">Run the test</button>
+      <div id="wTestOut"></div>
+      <div id="wClaudeBox" hidden>
+        <h3>Add Rudi-Sim to Claude Code</h3>
+        <p>Run this once in a terminal, or let Rudi-Sim do it:</p>
+        <pre class="out" id="wClaudeCmd"></pre>
+        <button id="wAddClaude">Add it for me</button> <button id="wCopyClaude">Copy</button>
+        <pre id="wClaudeOut" class="out" hidden></pre>
+      </div>
+    </div>
+
+    <footer><button id="wBack">Back</button><span class="grow"></span><button id="wSkip" class="link">Skip this step</button><button id="wNext" class="primary">Next</button></footer>
+  </div>
+</section>
+
+<!-- The app itself. -->
+<section id="main" hidden>
+  <nav>
+    <img src="../assets/icon.png" alt="" class="logo">
+    <button data-tab="home" class="on">Home</button>
+    <button data-tab="sim">Simulator</button>
+    <button data-tab="previews">Previews</button>
+    <button data-tab="recordings">Recordings</button>
+    <button data-tab="settings">Settings</button>
+    <span class="grow"></span>
+    <button id="quitBtn" class="link">Quit Rudi-Sim</button>
+  </nav>
+
+  <main>
+    <div class="tab" id="tab-home">
+      <h1>Rudi-Sim</h1>
+      <div class="cards">
+        <div class="card" id="cardChatgpt">
+          <div class="light" id="chatLight"></div>
+          <div><b>ChatGPT</b><div id="chatState"></div><small id="chatDetail" class="muted"></small></div>
+          <div class="btns">
+            <button id="connectBtn">Connect</button>
+            <button id="disconnectBtn">Disconnect</button>
+            <button id="restartBtn">Restart connection</button>
+          </div>
+        </div>
+        <div class="card"><div class="light" id="claudeLight"></div><div><b>Claude Code</b><div id="claudeState"></div><small class="muted">Connects on this computer, no internet tunnel.</small></div></div>
+        <div class="card"><div class="light" id="simLight"></div><div><b>Simulator</b><div id="simState"></div><small id="simDetail" class="muted"></small></div>
+          <div class="btns"><button id="homeStopSim">Stop simulator</button></div></div>
+        <div class="card"><div class="light" id="engineLight"></div><div><b>Safari's engine</b><div id="engineState"></div></div>
+          <div class="btns"><button id="homeEngine" hidden>Download</button></div></div>
+      </div>
+      <p class="muted small">Disconnect stops ChatGPT from reaching this computer and keeps it that way, even after a restart, until you choose Connect. Your key, settings and recordings stay. Claude Code keeps working.</p>
+      <h2>Latest recording</h2>
+      <div id="homeLatest" class="muted">No recordings yet.</div>
+    </div>
+
+    <div class="tab" id="tab-sim" hidden>
+      <h1>Simulator</h1>
+      <p class="muted">Open a site yourself, or let an assistant do it. The simulator opens in its own window, which you can click and scroll in at any time.</p>
+      <div class="grid2">
+        <label class="field">Website <input id="sUrl" placeholder="https://example.com" spellcheck="false"></label>
+        <label class="field">Compare with (optional) <input id="sCompare" placeholder="http://localhost:3000" spellcheck="false"></label>
+      </div>
+      <label class="field">Or a trusted project <select id="sProject"><option value="">None</option></select></label>
+      <h3>Screens</h3>
+      <div id="sGroups" class="chips"></div>
+      <details><summary>All devices</summary><div id="sDevices" class="devlist"></div></details>
+      <label class="field">Custom sizes (width×height, comma separated) <input id="sCustom" placeholder="390x844, 1280x800 desktop" spellcheck="false"></label>
+      <div class="row">
+        <label class="check inline"><input type="checkbox" id="sLandscape"> Landscape</label>
+        <label class="field inline">Theme <select id="sTheme"><option value="light">Light</option><option value="dark">Dark</option></select></label>
+        <label class="field inline">Seed <input id="sSeed" type="number" min="0" max="4294967295" placeholder="none"></label>
+      </div>
+      <p class="muted small">Seed makes the page's Math.random() give the same numbers each run. It doesn't freeze clocks, animations, network data or anything else.</p>
+      <div class="row"><button id="sStart" class="primary">Open simulator</button><button id="sStop">Stop and save recording</button></div>
+      <div id="sConflict" class="note warn" hidden><span id="sConflictText"></span> <button id="sForce">Stop their session</button></div>
+      <div class="note">When an assistant drives the simulator, its taps and typing show up on every screen. Your own clicks in the simulator window only affect the screen you click in, and the assistant won't know about them unless you tell it.</div>
+      <div id="sPanes"></div>
+      <div class="row" id="sActions" hidden>
+        <button data-act="look">Screenshot</button>
+        <button data-act="retry">Retry screens that failed</button>
+        <button data-act="rotate">Rotate</button>
+        <button data-act="back">Back</button>
+      </div>
+      <img id="sShot" alt="" hidden>
+    </div>
+
+    <div class="tab" id="tab-previews" hidden>
+      <h1>Previews</h1>
+      <p class="muted">A project file tells Rudi-Sim how to start two versions of your site (for example main and your branch) side by side. Rudi-Sim runs its commands only after you've reviewed and trusted the file here. If the file changes, you'll be asked again.</p>
+      <button id="pChoose">Review a project file…</button>
+      <div id="pReview" class="note" hidden></div>
+      <div id="pList"></div>
+      <pre id="pLog" class="out" hidden></pre>
+    </div>
+
+    <div class="tab" id="tab-recordings" hidden>
+      <h1>Recordings</h1>
+      <div class="row"><code id="rRoot"></code><button id="rOpenRoot">Open folder</button></div>
+      <div class="split">
+        <ul id="rList" class="list"></ul>
+        <div id="rDetail" class="detail muted">Choose a recording.</div>
+      </div>
+    </div>
+
+    <div class="tab" id="tab-settings" hidden>
+      <h1>Settings</h1>
+      <h2>Assistants</h2>
+      <label class="check"><input type="checkbox" id="tUseClaude"> <span><b>Claude Code</b></span></label>
+      <div class="indent">
+        <pre class="out" id="tClaudeCmd"></pre>
+        <button id="tAddClaude">Add to Claude Code</button> <button id="tCopyClaude">Copy command</button>
+        <pre id="tClaudeOut" class="out" hidden></pre>
+      </div>
+      <label class="check"><input type="checkbox" id="tUseChatgpt"> <span><b>ChatGPT</b> <small>(developer setup through OpenAI's tunnel)</small></span></label>
+      <div class="indent">
+        <div class="pathrow"><code id="tTunnelClient"></code><button id="tPickTunnel">Change tunnel-client…</button></div>
+        <label class="field">Tunnel ID <input id="tTunnelId" placeholder="tunnel_…" spellcheck="false" autocomplete="off"></label>
+        <label class="field">Runtime API key <input id="tKey" type="password" autocomplete="off"></label>
+        <p class="muted small" id="tKeyNote"></p>
+        <button id="tSaveTunnel">Save</button> <button id="tCheck">Check setup</button> <button id="tForget" class="danger">Forget connection…</button>
+        <pre id="tTunnelOut" class="out" hidden></pre>
+      </div>
+      <h2>Recordings folder</h2>
+      <div class="pathrow"><code id="tFolder"></code><button id="tPickFolder">Change…</button></div>
+      <div id="tMoveAsk" class="note" hidden>
+        Move your existing recordings to <code id="tNewFolder"></code>?
+        <button id="tMove">Move them</button> <button id="tKeep">Leave them where they are</button> <button id="tCancelMove" class="link">Cancel</button>
+      </div>
+      <h2>Running</h2>
+      <label class="check"><input type="checkbox" id="tBackground"> <span><b>Keep running when I close the window</b></span></label>
+      <label class="check" id="tLoginRow"><input type="checkbox" id="tLogin"> <span><b>Start when I sign in</b></span></label>
+      <h2>Safari's engine</h2>
+      <p id="tEngine"></p><button id="tEngineGo">Download again</button>
+      <h2>About</h2>
+      <p>Rudi-Sim <span id="tVersion"></span>. <button id="tUpdates" class="link">Check for updates</button> <span id="tUpdateOut"></span></p>
+      <p class="muted small">Unsigned build: Windows and macOS may warn when you open it the first time. Signed builds are planned.</p>
+      <button id="tRerunSetup" class="link">Run the setup guide again</button>
+    </div>
+  </main>
+</section>
+<div id="toast" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>

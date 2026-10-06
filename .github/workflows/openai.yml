@@ -1,0 +1,69 @@
+name: OpenAI package and headless WebKit
+
+on:
+  pull_request:
+    paths:
+      - 'integrations/openai/**'
+      - '.claude-plugin/plugin.json'
+      - 'LICENSE'
+      - 'skills/rudi-sim/**'
+      - 'media/rudi-sim-logo.svg'
+      - '.github/workflows/openai.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'integrations/openai/**'
+      - '.claude-plugin/plugin.json'
+      - 'LICENSE'
+      - 'skills/rudi-sim/**'
+      - 'media/rudi-sim-logo.svg'
+      - '.github/workflows/openai.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  openai:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Validate standalone OpenAI package
+        run: node integrations/openai/test.mjs
+      - name: Install existing WebKit runtime
+        run: node skills/rudi-sim/scripts/setup.mjs
+      - name: Install WebKit system libraries
+        run: npx --prefix ~/.rudi-sim playwright install-deps webkit
+      - name: Test packaged screenshots and headless recording
+        run: node integrations/openai/smoke.mjs
+      - name: Test packaged Before/After comparison with different layouts
+        run: node integrations/openai/compare-smoke.mjs
+      - name: Save comparison screenshots and recording
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rudi-sim-openai-comparison
+          path: |
+            /tmp/rudi-sim-openai-compare-*/original
+            /tmp/rudi-sim-openai-compare-*/proposed
+            /tmp/rudi-sim-openai-compare-*/paired
+          retention-days: 14
+      - name: Build OpenAI plugin
+        run: node integrations/openai/build.mjs --out integrations/openai/build/release
+      - name: Create skills-only plugin archive
+        working-directory: integrations/openai/build/release
+        run: zip -r rudi-sim-openai.zip rudi-sim
+      - name: Save uploadable plugin and local marketplace
+        uses: actions/upload-artifact@v4
+        with:
+          name: rudi-sim-openai
+          path: integrations/openai/build/release
+          retention-days: 14

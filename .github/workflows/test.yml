@@ -1,0 +1,57 @@
+name: Test in Safari's engine
+
+on:
+  pull_request:
+    paths:
+      - 'skills/rudi-sim/scripts/**'
+      - 'test/**'
+      - '.github/workflows/test.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'skills/rudi-sim/scripts/**'
+      - 'test/**'
+      - '.github/workflows/test.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: First-run setup (the same command users run)
+        run: node skills/rudi-sim/scripts/setup.mjs
+      - name: Linux needs WebKit's system libraries
+        if: runner.os == 'Linux'
+        run: npx --prefix ~/.rudi-sim playwright install-deps webkit
+      - name: Device list
+        run: node skills/rudi-sim/scripts/check.mjs --list
+      - name: End-to-end test
+        run: node test/run.mjs --engine webkit
+      - name: Before/After loading (https beside http, a site that's down, slow pages, recordings)
+        run: node test/compare.mjs --engine webkit
+      - name: Starting and stopping original/proposed previews
+        run: node test/preview.mjs
+      - name: Save screenshots and videos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rudi-sim-${{ matrix.os }}
+          path: test/out
+          retention-days: 14

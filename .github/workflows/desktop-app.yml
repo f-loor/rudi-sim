@@ -1,0 +1,246 @@
+name: Desktop app
+
+# Builds the Windows installer and the macOS app from app/, installs them the
+# way a person would (into folders with spaces and non-English letters), runs
+# the installed app's self-test and lifecycle checks, uninstalls on Windows,
+# and keeps everything as downloadable artifacts. Builds are unsigned; nothing
+# is uploaded to a store or published as a release.
+on:
+  pull_request:
+    paths:
+      - 'app/**'
+      - 'integrations/desktop/**'
+      - 'integrations/local-bridge/**'
+      - 'integrations/release/**'
+      - 'skills/rudi-sim/scripts/**'
+      - '.claude-plugin/plugin.json'
+      - '.github/workflows/desktop-app.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'integrations/desktop/**'
+      - 'integrations/local-bridge/**'
+      - 'integrations/release/**'
+      - 'skills/rudi-sim/scripts/**'
+      - '.claude-plugin/plugin.json'
+      - '.github/workflows/desktop-app.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CSC_IDENTITY_AUTO_DISCOVERY: "false"
+  ELECTRON_CACHE: ${{ github.workspace }}/.cache/electron
+  ELECTRON_BUILDER_CACHE: ${{ github.workspace }}/.cache/electron-builder
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Folders with spaces and non-English letters
+        run: |
+          "INSTALL_DIR=$env:RUNNER_TEMP\Rudi Sim Zoë\App" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
+          "RUDI_SIM_DESKTOP_HOME=$env:RUNNER_TEMP\Rudi home Zoë" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
+          "RUDI_SIM_RECORDINGS=$env:RUNNER_TEMP\Récordings Ü" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
+          "RESULTS=$env:RUNNER_TEMP\results" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install build tools
+        working-directory: app
+        run: npm ci
+      - name: Build the Windows installer
+        working-directory: app
+        run: |
+          $t = Get-Date
+          npx electron-builder --win --publish never
+          "Build took $([int]((Get-Date) - $t).TotalSeconds) s"
+          Get-ChildItem dist -File | Format-Table Name, Length
+      - name: Install silently into a folder with spaces and non-English letters
+        run: |
+          New-Item -ItemType Directory -Force $env:RESULTS | Out-Null
+          $setup = Get-ChildItem app\dist\Rudi-Sim-Setup-*.exe | Select-Object -First 1
+          $t = Get-Date
+          $p = Start-Process -FilePath $setup.FullName -ArgumentList '/S', "/D=$env:INSTALL_DIR" -Wait -PassThru
+          "Installer exit code $($p.ExitCode), took $([int]((Get-Date) - $t).TotalSeconds) s"
+          if (-not (Test-Path "$env:INSTALL_DIR\Rudi-Sim.exe")) { throw "Rudi-Sim.exe wasn't installed" }
+          Get-ChildItem "$env:INSTALL_DIR\resources\bin", "$env:INSTALL_DIR\resources\engine" | Select-Object -First 20 | Format-Table Name
+      - name: Self-test of the installed app (downloads Safari's engine, Claude and ChatGPT clients, recordings, stand-in tunnel)
+        run: |
+          $env:RUDI_SIM_CREDENTIAL_PROVIDER = 'env-for-tests'
+          $env:RUDI_SIM_TEST_KEY = 'sk-test-ci-not-a-real-key'
+          $env:RUDI_SIM_TEST_TUNNEL = (ConvertTo-Json -Compress @("$env:INSTALL_DIR\Rudi-Sim.exe", "$env:GITHUB_WORKSPACE\integrations\desktop\fake-tunnel.mjs"))
+          $env:FAKE_TUNNEL_CONTROL = "$env:RUNNER_TEMP\control.json"
+          '{}' | Set-Content $env:FAKE_TUNNEL_CONTROL
+          $p = Start-Process -FilePath "$env:INSTALL_DIR\Rudi-Sim.exe" -ArgumentList "--smoke-test=$env:RESULTS\windows.smoke.json" -Wait -PassThru
+          Get-Content "$env:RESULTS\windows.smoke.json"
+          if ($p.ExitCode -ne 0) { throw "Self-test failed (exit $($p.ExitCode))" }
+      - name: Open twice, force-close and recover, quit
+        env:
+          RUDI_SIM_DESKTOP_HOME: ${{ runner.temp }}\Rudi lifecycle Zoë
+        run: node app/test/lifecycle.mjs --app "$env:INSTALL_DIR\Rudi-Sim.exe" --out "$env:RESULTS\windows.lifecycle.json"
+      - name: Uninstall silently; recordings stay
+        run: |
+          $before = (Get-ChildItem -Recurse -Filter *.webm $env:RUDI_SIM_RECORDINGS).Count
+          if ($before -eq 0) { throw "No recordings to check" }
+          Start-Process -FilePath "$env:INSTALL_DIR\Uninstall Rudi-Sim.exe" -ArgumentList '/S' -Wait
+          for ($i = 0; $i -lt 60 -and (Test-Path "$env:INSTALL_DIR\Rudi-Sim.exe"); $i++) { Start-Sleep 1 }
+          if (Test-Path "$env:INSTALL_DIR\Rudi-Sim.exe") { throw "The app is still installed" }
+          $after = (Get-ChildItem -Recurse -Filter *.webm $env:RUDI_SIM_RECORDINGS).Count
+          "Recordings before: $before, after uninstalling: $after"
+          if ($after -ne $before) { throw "Uninstalling removed recordings" }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rudi-sim-windows-installer
+          path: app/dist/Rudi-Sim-Setup-*.exe
+          if-no-files-found: ignore
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rudi-sim-windows-test-results
+          path: |
+            ${{ runner.temp }}\results
+            ${{ runner.temp }}\Récordings Ü
+          if-no-files-found: ignore
+          retention-days: 14
+
+  macos:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - name: Folders with spaces and non-English letters
+        run: |
+          echo "RUDI_SIM_DESKTOP_HOME=$RUNNER_TEMP/Rudi home Zoë" >> "$GITHUB_ENV"
+          echo "RUDI_SIM_RECORDINGS=$RUNNER_TEMP/Récordings Ü" >> "$GITHUB_ENV"
+          echo "RESULTS=$RUNNER_TEMP/results" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install build tools
+        working-directory: app
+        run: npm ci
+      - name: Build the macOS app (universal, unsigned)
+        working-directory: app
+        run: |
+          start=$(date +%s)
+          npx electron-builder --mac --publish never
+          echo "Build took $(( $(date +%s) - start )) s"
+          ls -la dist
+      - name: Install from the disk image into a folder with spaces and non-English letters
+        run: |
+          mkdir -p "$RESULTS" "$RUNNER_TEMP/Apps Zoë"
+          dmg=$(ls app/dist/Rudi-Sim-*-mac-*.dmg | head -1)
+          mnt=$(hdiutil attach -nobrowse -readonly "$dmg" | tail -1 | awk -F'\t' '{print $NF}')
+          cp -R "$mnt/Rudi-Sim.app" "$RUNNER_TEMP/Apps Zoë/"
+          hdiutil detach "$mnt"
+          echo "APP=$RUNNER_TEMP/Apps Zoë/Rudi-Sim.app/Contents/MacOS/Rudi-Sim" >> "$GITHUB_ENV"
+          ls "$RUNNER_TEMP/Apps Zoë/Rudi-Sim.app/Contents/Resources/bin" "$RUNNER_TEMP/Apps Zoë/Rudi-Sim.app/Contents/Resources/engine"
+      - name: Self-test of the installed app (downloads Safari's engine, Claude and ChatGPT clients, recordings, stand-in tunnel)
+        run: |
+          echo '{}' > "$RUNNER_TEMP/control.json"
+          RUDI_SIM_CREDENTIAL_PROVIDER=env-for-tests RUDI_SIM_TEST_KEY=sk-test-ci-not-a-real-key \
+          RUDI_SIM_TEST_TUNNEL="$(node -e 'console.log(JSON.stringify([process.env.APP, process.env.GITHUB_WORKSPACE + "/integrations/desktop/fake-tunnel.mjs"]))')" \
+          FAKE_TUNNEL_CONTROL="$RUNNER_TEMP/control.json" \
+          "$APP" --smoke-test="$RESULTS/macos.smoke.json"; code=$?
+          cat "$RESULTS/macos.smoke.json"
+          exit $code
+      - name: Open twice, force-close and recover, quit
+        env:
+          RUDI_SIM_DESKTOP_HOME: ${{ runner.temp }}/Rudi lifecycle Zoë
+        run: node app/test/lifecycle.mjs --app "$APP" --out "$RESULTS/macos.lifecycle.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rudi-sim-macos-app
+          path: |
+            app/dist/Rudi-Sim-*-mac-*.dmg
+            app/dist/Rudi-Sim-*-mac-*.zip
+          if-no-files-found: ignore
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rudi-sim-macos-test-results
+          path: |
+            ${{ runner.temp }}/results
+            ${{ runner.temp }}/Récordings Ü
+          if-no-files-found: ignore
+          retention-days: 14
+
+  # Every package from this commit in one place, with checksums and a manifest
+  # (commit, platform, runtime versions, signing status). Not a release.
+  packages:
+    needs: [windows, macos]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          path: installers
+          pattern: rudi-sim-*
+          merge-multiple: true
+      - name: Build every package with checksums and a manifest
+        run: |
+          find installers -maxdepth 3 -name '*.smoke.json' -exec cp {} installers/ \;
+          node integrations/release/build.mjs --out dist --installers installers
+          cat dist/*/release.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rudi-sim-all-packages
+          path: dist/
+          retention-days: 14
+
+  # How long common steps take in real WebKit, before (main) and after (this change).
+  timings:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.base_ref }}
+          path: base
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node skills/rudi-sim/scripts/setup.mjs
+      - run: npx --prefix ~/.rudi-sim playwright install-deps webkit
+      - name: Before (the base branch)
+        continue-on-error: true
+        run: node test/bench.mjs --engine webkit --runs 3 --walk base/skills/rudi-sim/scripts/walk.mjs --json before.json
+      - name: After (this change)
+        run: node test/bench.mjs --engine webkit --runs 3 --json after.json
+      - name: Summary
+        if: always()
+        run: |
+          node -e '
+            const fs = require("fs"); const read = (f) => { try { return JSON.parse(fs.readFileSync(f, "utf8")).medians; } catch { return {}; } };
+            const b = read("before.json"), a = read("after.json");
+            const rows = Object.keys({ ...b, ...a }).map((k) => `| ${k} | ${b[k] ?? "–"} | ${a[k] ?? "–"} |`);
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, ["### WebKit timings (median ms, 3 runs, 4 screens)", "| Step | Before | After |", "|---|---|---|", ...rows].join("\n") + "\n");
+            console.log(rows.join("\n"));'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rudi-sim-webkit-timings
+          path: '*.json'
+          if-no-files-found: ignore

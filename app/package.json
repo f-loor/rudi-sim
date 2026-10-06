@@ -1,0 +1,122 @@
+{
+  "name": "rudi-sim-desktop",
+  "productName": "Rudi-Sim",
+  "version": "1.1.0",
+  "description": "See your website on Apple screen sizes in Safari's engine, driven by Claude Code or ChatGPT.",
+  "author": "rudi-verse",
+  "license": "MIT",
+  "homepage": "https://github.com/f-loor/rudi-sim",
+  "private": true,
+  "type": "module",
+  "main": "main.mjs",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --publish never"
+  },
+  "dependencies": {
+    "playwright": "1.63.0"
+  },
+  "devDependencies": {
+    "electron": "44.5.1",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "com.rudiverse.rudisim",
+    "productName": "Rudi-Sim",
+    "asar": false,
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.mjs",
+      "preload.cjs",
+      "smoke.mjs",
+      "ui/**",
+      "assets/**",
+      "package.json",
+      "!node_modules/playwright-core/lib/vite/**"
+    ],
+    "extraResources": [
+      {
+        "from": "../skills/rudi-sim/scripts",
+        "to": "engine/skills/rudi-sim/scripts",
+        "filter": [
+          "**/*.mjs",
+          "**/*.js",
+          "**/*.json"
+        ]
+      },
+      {
+        "from": "../integrations/local-bridge",
+        "to": "engine/integrations/local-bridge",
+        "filter": [
+          "server.mjs"
+        ]
+      },
+      {
+        "from": "../integrations/desktop",
+        "to": "engine/integrations/desktop",
+        "filter": [
+          "*.mjs",
+          "!*test*.mjs",
+          "!fake-tunnel.mjs"
+        ]
+      },
+      {
+        "from": "bin",
+        "to": "bin",
+        "filter": [
+          "rudi-sim-mcp*",
+          "!rudi-sim-mcp-dev*"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png",
+      "signAndEditExecutable": true
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Rudi-Sim",
+      "artifactName": "Rudi-Sim-Setup-${version}-${arch}.${ext}"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "universal"
+          ]
+        }
+      ],
+      "icon": "build/icon.png",
+      "category": "public.app-category.developer-tools",
+      "identity": null,
+      "hardenedRuntime": false,
+      "artifactName": "Rudi-Sim-${version}-mac-${arch}.${ext}"
+    },
+    "dmg": {
+      "artifactName": "Rudi-Sim-${version}-mac-${arch}.${ext}"
+    }
+  }
+}

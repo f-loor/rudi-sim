@@ -1,0 +1,22 @@
+/test/out/
+node_modules/
+/rudi-sim/
+# Rudi-Sim project files are per-computer and trusted by hash; keep yours local.
+rudi-sim.project.json
+/dist/
+/app/dist/
+
+# Local secrets and simulator runtime state must never enter a release.
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+/.rudi-sim/
+/.rudi-sim-bridge/
+/.rudi-sim-desktop/
+/.rudi-bridge-runtime/
+/.rudi-bridge-recordings/
+/.cache/
+/Rudi-Sim Recordings/

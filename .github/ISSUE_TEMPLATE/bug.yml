@@ -1,0 +1,29 @@
+name: Something isn't working
+description: Rudi-Sim did something wrong or didn't start
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you asked Claude, and what Rudi-Sim did instead.
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Your computer
+      placeholder: Windows 11, macOS 15, Ubuntu 24.04...
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device or size you asked for
+      placeholder: iPhone SE, iPad mini, 1280x800...
+  - type: textarea
+    id: output
+    attributes:
+      label: Error text
+      description: Paste any error Claude showed. Leave out anything private, like passwords or private URLs.
+      render: text

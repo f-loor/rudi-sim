@@ -1,0 +1,5 @@
+#!/bin/sh
+# ChatGPT's tunnel runs this to reach the Rudi-Sim app. It starts the bridge with
+# the app's own runtime, so Node.js doesn't need to be installed.
+here="$(cd "$(dirname "$0")" && pwd)"
+ELECTRON_RUN_AS_NODE=1 exec "$here/../../MacOS/Rudi-Sim" "$here/../engine/integrations/local-bridge/server.mjs" "$@"
