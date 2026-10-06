@@ -6,6 +6,10 @@
 
 <p align="center"><img src="media/side-by-side.gif" width="800" alt="Rudi-Sim showing a site on several Apple screens side by side while Claude taps through it"></p>
 
+Published by **Rudiverse LLC**. Free and open source; no purchases or subscriptions.
+
+[Support](docs/SUPPORT.md) · [Privacy Policy](docs/PRIVACY.md) · [Terms of Use](docs/TERMS.md) · [MIT License](LICENSE)
+
 ## What it does
 
 - **Watch mode.** A Safari window opens on your screen showing your site on the device you asked for, and Claude taps through it while you watch. A red dot shows each tap and a caption says what's happening. It saves a video and screenshots.
